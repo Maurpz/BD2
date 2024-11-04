@@ -23,7 +23,4 @@ struct TupleHeader {
   uint16_t t_attnum;  //numero de atributos
 };
 
-//
-bool insertRecord();
-
 #endif
