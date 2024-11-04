@@ -22,13 +22,15 @@ struct LinePointer {
 };
 
 struct TupleHeader {
+  uint16_t t_length;  //tamaño de total del header y la data
   uint16_t t_hoff;    //indica el inicio de los datos reales (tuple data)
   uint16_t t_bits;    //bitmap de valores nulos
+  uint16_t t_attnum;  //numero de atributos
 };
 
 //la descripcion de una tabla
 struct PgClassRow {
-  //deberia de tener su propi oid
+  uint32_t oid;       // oid de la tabla
   char relname[MAX_SIZE_CHAR];   //nombre de la tabla
   uint32_t relam;     //OID de la estructura del indice B-Tree , etc
   uint16_t relpages;  //numero relativo de pagainas de la tabla
@@ -197,6 +199,36 @@ void guardarTupla(string & fileName, PgAttributeRow * column,int value) {
   delete h1;
 }
 
+void saveData () {
+  string name= "Jose Mauricio Hualp Lopez";
+  int sizeName = name.size();
+  char * arrayName = new char[sizeName +1];
+  strncpy(arrayName,name.c_str(),sizeName +1);
+  arrayName[sizeName] = 0;
+
+
+  int numColums = 2;
+
+  PgType t1;
+  PgAttributeRow nameColumn;
+  PgAttributeRow ageColumn;
+  PgAttributeRow columns[numColums];
+
+  columns[0] = nameColumn;
+  columns[1] = ageColumn;
+
+
+  int totalSize = 0;
+  totalSize+=ageColumn.attlen;
+
+  for (int i = 0; i < numColums; i++) {
+
+  }
+
+
+
+}
+
 
 int main () {
   string studentsTableName = "students";
@@ -204,6 +236,7 @@ int main () {
   uint16_t tam_nameTable = sizeof(sizeof(tableRow.relname) - 1);
   strncpy(tableRow.relname,studentsTableName.c_str(),tam_nameTable);
   tableRow.relname[tam_nameTable] = 0;
+
   tableRow.relpages = 1;
   tableRow.reltuples = 0;
   tableRow.relfilenode = 55555;
@@ -222,9 +255,11 @@ int main () {
 
   string nameColumn = "edad";
   PgAttributeRow columnTable;
+
   uint16_t tam_nameColumn = sizeof(columnTable.attname) - 1;
   strncpy(columnTable.attname,nameColumn.c_str(),tam_nameColumn);
   columnTable.attname[tam_nameColumn] = 0;
+
   columnTable.attrelid = tableRow.relfilenode;
   columnTable.atttypid = int4.oid;
   columnTable.attlen = int4.typlen;
