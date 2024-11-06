@@ -27,7 +27,7 @@ struct PgAttributeRow {
   uint32_t attrelid;  //OID de la tabla que describe
   char attname[MAX_SIZE_CHAR];   //nombre de la columnas "edad, id, nombre, ...etc"
   uint32_t atttypid;  //id del tipo de dato de la columna
-  uint16_t attlen;    //longitud de la columna en bytes segun su tipo
+  int16_t attlen;    //longitud de la columna en bytes segun su tipo
   uint16_t attnum;    //posicion de la columna dentro de la tabla, comienza en 1 para el primero
   bool attnotnull;    //indica si la columna permite valores nulos true: si permite, false: no permite
   bool attisdropped;  //indica si la columna ha sido eliminada
@@ -37,10 +37,10 @@ struct PgAttributeRow {
 struct PgType {
   uint32_t oid;   //identificador unico del tipo descrito
   char typname[MAX_SIZE_CHAR];  //nombre del tipo "int4, varchar"
-  uint16_t typlen;  //longitud de bytes del tipo de dato
+  int16_t typlen;  //longitud de bytes del tipo de dato
   char typcategory; //indica la categoria "N: es para tipos numeros, S: tipos de texto"
 
-  PgType(uint32_t id, char name[], uint16_t len, char category)
+  PgType(uint32_t id, char name[], int16_t len, char category)
     :oid(id), typlen(len), typcategory(category) {
       strncpy(typname, name, MAX_SIZE_CHAR - 1);
         typname[MAX_SIZE_CHAR - 1] = '\0';{}
@@ -56,11 +56,24 @@ class Catalog {
     Catalog();
 
     int findTable(string tableName);
+
     bool createTable(string tableName);
-    void createAttribute();
+
+    //*@params create column
+    //int tableOID, string nameColumn, string typeName,int index,bool permitNull
+    void createColumn(int,string,string,int,bool);
     void createType();
 
-    void getOidByTableName(string nameTable);
+    bool tableExists(string tableName);//
+    bool columnExists(string columnName);
+    bool typeExists(string typeName);
+
+    unique_ptr<PgClassRow> getTable(string tableName);
+    unique_ptr<PgAttributeRow> getColumn(int tableOID, string columnName);
+    int getAllColumns(int tableOID);
+    PgType * getType(string typeName);
+
+    //TODO: metodos para crear indices
 };
 
 

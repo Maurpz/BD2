@@ -3,11 +3,13 @@
 
 int main () {
   BufferManager b1;
+  b1.setDbName("testDB");
+  b1.setHostName("db_storage");
+  b1.newPage(12133);
+  b1.printStatus();
+  b1.newPage(12133);
+  b1.printStatus();
 
-  // b1.addPage(166,195);
-  // b1.addPage(213,553);
-
-  b1.newPage(1);
 
   return 0;
 }

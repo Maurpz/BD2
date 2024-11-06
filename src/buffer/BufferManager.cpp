@@ -1,6 +1,6 @@
 #include "BufferManager.h"
 #include <iostream>
-#include "storage/Page.h"
+#include "../storage/Page.h"
 using namespace std;
 
 BufferManager::BufferManager(){
@@ -38,11 +38,26 @@ Buffer * BufferManager::loadPage(int fileNodeOID, int pageNum) {
   // return bufferPool[key].get();
   pair<int,int> key = make_pair(fileNodeOID,pageNum);
   if (isPageInBuffer(key)) return bufferPool[key].get();
+
   string slash = "/";
-  
   string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
+  r_and_w->open(dirName, ios::binary | ios::in);
+  if (!r_and_w->is_open()) {
+    cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
+    return nullptr;
+  }
+  int offset = pageNum * PAGE_SIZE;
+  r_and_w->seekg(offset,ios::beg);
 
+  unique_ptr<Buffer> tempBuffer = make_unique<Buffer>(fileNodeOID,pageNum);
 
+  r_and_w->read(tempBuffer->getData(),PAGE_SIZE);
+  if (!r_and_w->good()) return nullptr;
+
+  r_and_w->close();
+
+  this->bufferPool[key] = move(tempBuffer);
+  return bufferPool[key].get();
 
 }
 
@@ -89,10 +104,17 @@ Buffer * BufferManager::newPage(int fileNodeOID) {
   // r_and_w->close();
   // return true;
   string slash = "/";
-  string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
-  r_and_w->open(dirName,ios::binary | ios::in | ios::out);
+  string dirName = "."+slash+host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
+  
+  r_and_w->open(dirName,ios::binary | ios::in | ios::out | ios::app);
+  if (!r_and_w->is_open()) {
+    cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
+    return nullptr;
+  }
   r_and_w->seekg(0,ios::end);
-  int pageNum = (r_and_w->tellg() / PAGE_SIZE) - 1;
+  cout<<"tamaño del archivo"<<r_and_w->tellg()<<endl;//!debug eliminar
+  int pageNum = r_and_w->tellg() / PAGE_SIZE;
+  cout<<"El num de pagina a insertar es:"<<pageNum<<endl;//!debug eliminar
 
 
   //inicializacion de la pageHeader
@@ -123,4 +145,8 @@ void BufferManager::setDbName(string name) {
 
 void BufferManager::setHostName(string host) {
   this->host = host;
+}
+
+void BufferManager::printStatus(){
+  cout<<"paginas en el buffer:"<<bufferPool.size()<<endl;
 }
