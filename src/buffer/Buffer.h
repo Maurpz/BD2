@@ -18,6 +18,6 @@ class Buffer {
     int getFileNodeOID();
     void setIsDirty(bool);
     bool isDirty();
-    void setData(char[]);
+    void setData(char[]);//!posiblemente eliminar
 };
 #endif

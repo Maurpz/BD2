@@ -1,4 +1,5 @@
 #include "BufferManager.h"
+#include "Buffer.cpp"
 #include <iostream>
 #include "../storage/Page.h"
 using namespace std;
@@ -12,7 +13,7 @@ bool BufferManager::isPageInBuffer(pair<int,int> key) {
   return false;
 }
 
-Buffer * BufferManager::loadPage(int fileNodeOID, int pageNum) {
+Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
   // pair<int,int> key = make_pair(fileNodeOID,pageNum);
   // if (isPageInBuffer(key)) return bufferPool[key].get();
 
@@ -37,7 +38,11 @@ Buffer * BufferManager::loadPage(int fileNodeOID, int pageNum) {
   // cout<<"Operacion completada con exito"<<endl;
   // return bufferPool[key].get();
   pair<int,int> key = make_pair(fileNodeOID,pageNum);
-  if (isPageInBuffer(key)) return bufferPool[key].get();
+  if (isPageInBuffer(key)) { //todo: quitar el cout y dejarlo en 1 sola linea
+    cout<<"La pagina esta en el buffer"<<endl;
+    return bufferPool[key].get();
+  }
+  cout<<"Se buscara en el archivo la pagina"<<endl;
 
   string slash = "/";
   string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
@@ -120,7 +125,7 @@ Buffer * BufferManager::newPage(int fileNodeOID) {
   //inicializacion de la pageHeader
   Header newHeaderPage;
   newHeaderPage.elements = 0;
-  newHeaderPage.pd_lower = PAGE_SIZE-sizeof(Header);
+  newHeaderPage.pd_lower = 0 + sizeof(Header);
   newHeaderPage.pd_upper = PAGE_SIZE;
 
   //creamos el buffer y le agregamos su pageHeader

@@ -12,7 +12,7 @@ class Storage {
     Storage();
     static int generateOID();
 
-    
+    bool writeData();//!nose que sera revisar
 
 };
 #endif

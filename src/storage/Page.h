@@ -23,4 +23,14 @@ struct TupleHeader {
   uint16_t t_attnum;  //numero de atributos
 };
 
+
+class PageManager {
+  private:
+
+  public:
+    PageManager();
+
+    
+};
+
 #endif

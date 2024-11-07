@@ -12,6 +12,7 @@ const int MAX_SIZE_CHAR = 21;
 #include <fstream>
 
 
+
 //la descripcion de una tabla
 struct PgClassRow {
   uint32_t oid;       // oid de la tabla
@@ -45,6 +46,17 @@ struct PgType {
       strncpy(typname, name, MAX_SIZE_CHAR - 1);
         typname[MAX_SIZE_CHAR - 1] = '\0';{}
     }
+};
+
+//?Estructuras tenporales
+//*son de prueva testeo
+
+struct Field {
+  PgAttributeRow * refColumn;
+  int data;
+  bool isNull;
+
+  Field():isNull(true){}
 };
 
 class Catalog {

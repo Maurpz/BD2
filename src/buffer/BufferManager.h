@@ -24,7 +24,7 @@ class BufferManager {
     
   public:
     BufferManager();
-    Buffer * loadPage(int fileNodeOID, int pageNum);
+    Buffer * loadPage(uint32_t fileNodeOID, int pageNum);
 
     //sincroniza la pagina del buffer con el archivo en disco
     void flushPage(int fileNodeOID, int pageNum);
