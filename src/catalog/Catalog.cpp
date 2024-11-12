@@ -1,6 +1,7 @@
 #include "Catalog.h"
 #include "../storage/Storage.cpp"
 #include "../tools/string_to_arrayChar.cpp"
+#include <vector>
 
 Catalog::Catalog() {
   char nameI [] = {'I','N','T','E','G','E','R',0};
@@ -65,13 +66,14 @@ unique_ptr<PgClassRow> Catalog::getTable(string tableName) {
     if (result->relname == tableName) {
       cout<<"clase tabla encontrada : "<<result->relname<<endl;
       r_and_w->close();
+      cout << "OID: " << result->oid <<endl;
+      cout << "Nombre: " << result->relname <<endl;
+      cout << "Páginas: " << result->relpages <<endl;
+      cout << "Tuplas: " << result->reltuples <<endl;
+      cout << "--------------------------" <<endl;
       return move(result);
     }
-    cout << "OID: " << result->oid <<endl;
-    cout << "Nombre: " << result->relname <<endl;
-    cout << "Páginas: " << result->relpages <<endl;
-    cout << "Tuplas: " << result->reltuples <<endl;
-    cout << "--------------------------" <<endl;
+
   }
   r_and_w->close();
   return nullptr;
@@ -116,8 +118,12 @@ PgType * Catalog::getType(string typeName) {
   return nullptr;
 }
 
+
+
+
+
 unique_ptr<PgAttributeRow> Catalog::getColumn(int tableOID, string columnName) {
-  cout<<"dentro de getColumn"<<endl;
+  cout<<"---------dentro de getColumn-------------"<<endl;
   string dataBaseName = "./db_storage/data/testDB/";
   string dirName = "pg_attribute.bin";
   r_and_w->open(dataBaseName+dirName, ios::binary | ios::in);
@@ -133,16 +139,81 @@ unique_ptr<PgAttributeRow> Catalog::getColumn(int tableOID, string columnName) {
     if (foundColumn->attname==columnName && foundColumn->attrelid==tableOID) {
       cout<<"Se encontro la columna"<<endl;
       r_and_w->close();
+      cout<<"nombre : "<<foundColumn->attname<<endl;
+      cout<<"oid tabla : "<<foundColumn->attrelid<<endl;
+      cout<<"len : "<<foundColumn->attlen<<endl;
+      cout<<"posicion : "<<foundColumn->attnum<<endl;
+      cout<<"-------------------"<<endl;
       return move(foundColumn);
     }
-    cout<<"nombre : "<<foundColumn->attname<<endl;
-    cout<<"oid tabla : "<<foundColumn->attrelid<<endl;
-    cout<<"len : "<<foundColumn->attlen<<endl;
-    cout<<"posicion : "<<foundColumn->attnum<<endl;
-    cout<<"-------------------"<<endl;
   }
 
   r_and_w->close();
   return nullptr;
 
 }
+
+
+
+
+
+
+int Catalog::getNumColumns(int tableOID) {
+  cout<<"----------getNumColumns---------"<<endl;
+  string dataBaseName = "./db_storage/data/testDB/";
+  string dirName = "pg_attribute.bin";
+  r_and_w->open(dataBaseName+dirName, ios::binary | ios::in);
+
+  if (!r_and_w->is_open()) {
+    cout<<"NO se pudo abrir el archivo"<<endl;
+    return -1;
+  }
+
+  unique_ptr<PgAttributeRow> foundColumn = make_unique<PgAttributeRow>();
+  int count = 0;
+
+  while (r_and_w->read(reinterpret_cast<char*>(foundColumn.get()),sizeof(PgAttributeRow))) {
+    if (foundColumn->attrelid==tableOID) {
+      count++;
+    }
+  }
+  r_and_w->close();
+  cout<<"numero de columas :"<<count<<endl;
+  return count;
+}
+
+
+
+
+
+vector<PgAttributeRow> Catalog::getAllColumns(int tableOID) {
+  vector<PgAttributeRow> res;
+  cout<<"------------getAllColumns----------------"<<endl;
+  string dataBaseName = "./db_storage/data/testDB/";
+  string dirName = "pg_attribute.bin";
+  r_and_w->open(dataBaseName+dirName, ios::binary | ios::in);
+
+  if (!r_and_w->is_open()) {
+    cout<<"NO se pudo abrir el archivo"<<endl;
+    return res;
+  }
+  PgAttributeRow column;
+  int count = 0;
+
+  while (r_and_w->read(reinterpret_cast<char*>(&column),sizeof(PgAttributeRow))) {
+    cout<<"iteraciones: "<<count<<endl;
+    if (column.attrelid == tableOID) {
+      res.push_back(column);
+      cout<<"Se encontro la columna"<<endl;
+      cout<<"nombre : "<<column.attname<<endl;
+      cout<<"oid tabla : "<<column.attrelid<<endl;
+      cout<<"len : "<<column.attlen<<endl;
+      cout<<"posicion : "<<column.attnum<<endl;
+      cout<<"-------------------"<<endl;
+    }
+    count++;
+  }
+  r_and_w->close();
+  return res;
+}
+

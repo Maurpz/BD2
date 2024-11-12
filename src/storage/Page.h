@@ -30,6 +30,10 @@ class PageManager {
   public:
     PageManager();
 
+    static int generatebitMapNull(int size);
+    static void changeBitMap(int * bitmap, u_int16_t& index);
+    static bool isBitNull(uint16_t & bitmap, uint16_t  & index);
+
     
 };
 

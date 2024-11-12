@@ -62,6 +62,7 @@ Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
   r_and_w->close();
 
   this->bufferPool[key] = move(tempBuffer);
+  cout<<"Se encontro la pagina correctamente"<<endl;
   return bufferPool[key].get();
 
 }
@@ -154,4 +155,18 @@ void BufferManager::setHostName(string host) {
 
 void BufferManager::printStatus(){
   cout<<"paginas en el buffer:"<<bufferPool.size()<<endl;
+}
+
+void BufferManager::flushPage(int fileNodeOID, int pageNum) {
+  pair<int,int> key = make_pair(fileNodeOID,pageNum);
+  string slash = "/";
+  string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
+  r_and_w->open(dirName, ios::binary | ios::in | ios::out);
+  if (!r_and_w->is_open()) {
+    cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
+    return;
+  }
+  r_and_w->seekp(pageNum * PAGE_SIZE);
+  r_and_w->write(bufferPool[key].get()->getData(),PAGE_SIZE);
+  r_and_w->close();
 }

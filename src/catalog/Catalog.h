@@ -4,6 +4,7 @@ using namespace std;
 #define CATALOG_H
 
 const int MAX_SIZE_CHAR = 21;
+#include <vector>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -51,12 +52,36 @@ struct PgType {
 //?Estructuras tenporales
 //*son de prueva testeo
 
+struct Col_Data {
+  string columnName;
+  string data;
+};
+
+//field para solo tipo int
+// struct Field {
+//   PgAttributeRow * refColumn;
+//   int data;
+//   bool isNull;
+
+//   Field():isNull(true){}
+// };
+
+//*guardar datos
+//field para tipo de string e int
 struct Field {
   PgAttributeRow * refColumn;
-  int data;
+  string data;
   bool isNull;
 
   Field():isNull(true){}
+};
+
+//*leer columnas especificas 
+struct CustomField {
+  unique_ptr<PgAttributeRow> refColumn;
+  bool isSelected;
+
+  CustomField(): isSelected(false){}
 };
 
 class Catalog {
@@ -82,7 +107,8 @@ class Catalog {
 
     unique_ptr<PgClassRow> getTable(string tableName);
     unique_ptr<PgAttributeRow> getColumn(int tableOID, string columnName);
-    int getAllColumns(int tableOID);
+    vector<PgAttributeRow> getAllColumns(int tableOID);
+    int getNumColumns(int tableOID);
     PgType * getType(string typeName);
 
     //TODO: metodos para crear indices
