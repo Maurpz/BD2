@@ -186,8 +186,56 @@ int main () {
   columns.push_back("nombre");
   columns.push_back("apellido");
 
-  exe.selectCustom(nameTable, columns);
+  //exe.selectCustom(nameTable, columns);
+  vector<Condition> conds;
+  Condition cond1;
+  cond1.column = "apellido";
+  cond1.operator_ = "=";
+  cond1.value = "Hualpa";
+  conds.push_back(cond1);
+  //exe.selectAllWhere(nameTable, conds);
+
+  //exe.selectAllWherev2(nameTable,conds);
+  //exe.selectAll(nameTable);
+
+  vector<pair<string,string>> columnAndValue;
+  columnAndValue.push_back(make_pair("nombre","Pepito Quintanilla"));
+  columnAndValue.push_back(make_pair("apellido","Noah"));
+  columnAndValue.push_back(make_pair("edad","19"));
+
+
+
+
+
+
+  vector<pair<string,string>> columnAndValue2;
+  columnAndValue2.push_back(make_pair("edad","45"));
+
+  vector<Condition> conds2;
+  Condition cond2;
+  cond2.column = "edad";
+  cond2.operator_ = ">";
+  cond2.value = "2";
+  conds2.push_back(cond2);
+
+
+  vector<Condition> conds3;
+  Condition cond23;
+  cond23.column = "edad";
+  cond23.operator_ = "=";
+  cond23.value = "45";
+  conds3.push_back(cond23);
+
+
+
+  exe.updateRegister(nameTable, columnAndValue, conds,true);
+  exe.selectAll(nameTable);
+  exe.updateRegister(nameTable, columnAndValue2, conds2,false);
+  exe.selectAll(nameTable);
+  exe.deleteRegister(nameTable, conds3, false);
+  exe.selectAll(nameTable);
 
 
   return 0;
 }
+

@@ -1,8 +1,7 @@
 
 
-
-#include "../catalog/Catalog.h"
-#include "../buffer/BufferManager.h"
+#include <tuple>
+#include "../storage/Page.h"
 #ifndef EXECUTOR_H
 #define EXECUTOR_H
 
@@ -37,7 +36,21 @@ class Executor {
     //* select para all para caolumnas de diferente tipo
     void insertInto(string nameTable, vector<Col_Data> & rawData);
     void selectAll(string nameTable);
+    // selectAll2v(string nameTable);
+    void selectAllWhere(string nameTable, vector<Condition> & conditions);
+
+     vector<vector<string>> selectAllWherev2(string nameTable, vector<Condition> & conditions);
 
     void selectCustom(string nameTable, vector<string> & fields);
+
+    bool checkCondition_S (string a, string operator_, string b);
+    bool checkCondition_N (int a, string operator_, int b);
+
+    void updateRegister(string nameTable, vector<pair<string,string>> columnsAndValues, vector<Condition> conditions,bool isUnique);
+
+    void deleteRegister(string nameTable, vector<Condition> conditions, bool isUnique);
+
+
+
 };
 #endif

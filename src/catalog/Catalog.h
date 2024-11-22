@@ -84,6 +84,20 @@ struct CustomField {
   CustomField(): isSelected(false){}
 };
 
+//* con un where
+struct Condition {
+  string column;
+  string operator_;
+  string value;
+};
+
+struct Field_W_Condition {
+  //unique_ptr<PgAttributeRow> refColumn;
+  PgAttributeRow * refColumn;
+  string operator_;
+  string value;
+};
+
 class Catalog {
   private:
     string nameBD;
