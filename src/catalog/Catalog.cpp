@@ -64,13 +64,13 @@ unique_ptr<PgClassRow> Catalog::getTable(string tableName) {
 
   while(r_and_w->read(reinterpret_cast<char*>(result.get()),sizeof(PgClassRow))) {
     if (result->relname == tableName) {
-      cout<<"clase tabla encontrada : "<<result->relname<<endl;
+      //cout<<"clase tabla encontrada : "<<result->relname<<endl;
       r_and_w->close();
-      cout << "OID: " << result->oid <<endl;
-      cout << "Nombre: " << result->relname <<endl;
-      cout << "Páginas: " << result->relpages <<endl;
-      cout << "Tuplas: " << result->reltuples <<endl;
-      cout << "--------------------------" <<endl;
+      // cout << "OID: " << result->oid <<endl;
+      // cout << "Nombre: " << result->relname <<endl;
+      // cout << "Páginas: " << result->relpages <<endl;
+      // cout << "Tuplas: " << result->reltuples <<endl;
+      // cout << "--------------------------" <<endl;
       return move(result);
     }
 
@@ -123,7 +123,7 @@ PgType * Catalog::getType(string typeName) {
 
 
 unique_ptr<PgAttributeRow> Catalog::getColumn(int tableOID, string columnName) {
-  cout<<"---------dentro de getColumn-------------"<<endl;
+  //cout<<"---------dentro de getColumn-------------"<<endl;
   string dataBaseName = "./db_storage/data/testDB/";
   string dirName = "pg_attribute.bin";
   r_and_w->open(dataBaseName+dirName, ios::binary | ios::in);
@@ -137,13 +137,13 @@ unique_ptr<PgAttributeRow> Catalog::getColumn(int tableOID, string columnName) {
 
   while (r_and_w->read(reinterpret_cast<char*>(foundColumn.get()),sizeof(PgAttributeRow))) {
     if (foundColumn->attname==columnName && foundColumn->attrelid==tableOID) {
-      cout<<"Se encontro la columna"<<endl;
+      //cout<<"Se encontro la columna"<<endl;
       r_and_w->close();
-      cout<<"nombre : "<<foundColumn->attname<<endl;
-      cout<<"oid tabla : "<<foundColumn->attrelid<<endl;
-      cout<<"len : "<<foundColumn->attlen<<endl;
-      cout<<"posicion : "<<foundColumn->attnum<<endl;
-      cout<<"-------------------"<<endl;
+      // cout<<"nombre : "<<foundColumn->attname<<endl;
+      // cout<<"oid tabla : "<<foundColumn->attrelid<<endl;
+      // cout<<"len : "<<foundColumn->attlen<<endl;
+      // cout<<"posicion : "<<foundColumn->attnum<<endl;
+      // cout<<"-------------------"<<endl;
       return move(foundColumn);
     }
   }
@@ -159,7 +159,7 @@ unique_ptr<PgAttributeRow> Catalog::getColumn(int tableOID, string columnName) {
 
 
 int Catalog::getNumColumns(int tableOID) {
-  cout<<"----------getNumColumns---------"<<endl;
+  //cout<<"----------getNumColumns---------"<<endl;
   string dataBaseName = "./db_storage/data/testDB/";
   string dirName = "pg_attribute.bin";
   r_and_w->open(dataBaseName+dirName, ios::binary | ios::in);
@@ -178,7 +178,7 @@ int Catalog::getNumColumns(int tableOID) {
     }
   }
   r_and_w->close();
-  cout<<"numero de columas :"<<count<<endl;
+  //cout<<"numero de columas :"<<count<<endl;
   return count;
 }
 
@@ -188,7 +188,7 @@ int Catalog::getNumColumns(int tableOID) {
 
 vector<PgAttributeRow> Catalog::getAllColumns(int tableOID) {
   vector<PgAttributeRow> res;
-  cout<<"------------getAllColumns----------------"<<endl;
+  //cout<<"------------getAllColumns----------------"<<endl;
   string dataBaseName = "./db_storage/data/testDB/";
   string dirName = "pg_attribute.bin";
   r_and_w->open(dataBaseName+dirName, ios::binary | ios::in);
@@ -201,15 +201,15 @@ vector<PgAttributeRow> Catalog::getAllColumns(int tableOID) {
   int count = 0;
 
   while (r_and_w->read(reinterpret_cast<char*>(&column),sizeof(PgAttributeRow))) {
-    cout<<"iteraciones: "<<count<<endl;
+    //cout<<"iteraciones: "<<count<<endl;
     if (column.attrelid == tableOID) {
       res.push_back(column);
-      cout<<"Se encontro la columna"<<endl;
-      cout<<"nombre : "<<column.attname<<endl;
-      cout<<"oid tabla : "<<column.attrelid<<endl;
-      cout<<"len : "<<column.attlen<<endl;
-      cout<<"posicion : "<<column.attnum<<endl;
-      cout<<"-------------------"<<endl;
+      // cout<<"Se encontro la columna"<<endl;
+      // cout<<"nombre : "<<column.attname<<endl;
+      // cout<<"oid tabla : "<<column.attrelid<<endl;
+      // cout<<"len : "<<column.attlen<<endl;
+      // cout<<"posicion : "<<column.attnum<<endl;
+      // cout<<"-------------------"<<endl;
     }
     count++;
   }

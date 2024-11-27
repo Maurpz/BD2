@@ -54,10 +54,10 @@ void Executor::executeInsert1(string nameTable, string nameColumn, int data) {
   Header headPage;
   memcpy(&headPage,page->getData(),sizeof(Header));
   offset = headPage.pd_lower;
-  cout<<"Recuperamos el header del pagina en el buffer"<<endl;
-  cout<<"pd_lower : "<<headPage.pd_lower<<endl;
-  cout<<"pd_upper : "<<headPage.pd_upper<<endl;
-  cout<<"numero de tuplas : "<<headPage.elements<<endl;
+  // cout<<"Recuperamos el header del pagina en el buffer"<<endl;
+  // cout<<"pd_lower : "<<headPage.pd_lower<<endl;
+  // cout<<"pd_upper : "<<headPage.pd_upper<<endl;
+  // cout<<"numero de tuplas : "<<headPage.elements<<endl;
 
   //*creamos el line pointer
   LinePointer pointer;
@@ -76,18 +76,18 @@ void Executor::executeInsert1(string nameTable, string nameColumn, int data) {
   }
   dataSize+= sizeof(TupleHeader);
 
-  cout<<"El tamaño de la data que se insertara es de :"<<dataSize<<endl;
+  // cout<<"El tamaño de la data que se insertara es de :"<<dataSize<<endl;
 
-  cout<<1<<endl;
-  cout<<"offset"<<offset<<endl;
+  // cout<<1<<endl;
+  // cout<<"offset"<<offset<<endl;
   //*creamos el tuple header
   TupleHeader tHeader;
   tHeader.t_attnum = fields.size();
   tHeader.t_length = dataSize;
   tHeader.t_bits = bitmapNull;
 
-  cout<<2<<endl;
-  cout<<"offset"<<offset<<endl;
+  // cout<<2<<endl;
+  // cout<<"offset"<<offset<<endl;
   //*posicionamos el cabezal para la escritura
   pointer.offset = headPage.pd_upper - dataSize;
   pointer.length = dataSize;
@@ -95,19 +95,19 @@ void Executor::executeInsert1(string nameTable, string nameColumn, int data) {
 
   tHeader.t_hoff =offset + sizeof(TupleHeader);
 
-  cout<<3<<endl;
-  cout<<"offset"<<offset<<endl;
-  cout<<"nose: "<<sizeof(page)<<endl;
+  // cout<<3<<endl;
+  // cout<<"offset"<<offset<<endl;
+  // cout<<"nose: "<<sizeof(page)<<endl;
   memcpy(page->getData() + offset, &tHeader, sizeof(TupleHeader));
   //*actualizamos el offset con la nueva escritura
   offset += sizeof(TupleHeader);
-  cout<<4<<endl;
-  cout<<"offset"<<offset<<endl;
+  // cout<<4<<endl;
+  // cout<<"offset"<<offset<<endl;
   memcpy(page->getData() + offset, &data, sizeof(int));
   offset += sizeof(int);
 
-  cout<<5<<endl;
-  cout<<"offset"<<offset<<endl;
+  // cout<<5<<endl;
+  // cout<<"offset"<<offset<<endl;
   //*termino de escribir la tupla ahora escribiremos el linePointer
   offset = headPage.pd_lower;
   memcpy(page->getData() + offset, &pointer, sizeof(LinePointer));
@@ -117,12 +117,12 @@ void Executor::executeInsert1(string nameTable, string nameColumn, int data) {
   headPage.pd_upper -= dataSize;
   headPage.pd_lower += sizeof(LinePointer);
   headPage.elements++;
-  cout<<6<<endl;
-  cout<<"offset"<<offset<<endl;
+  // cout<<6<<endl;
+  // cout<<"offset"<<offset<<endl;
   offset = 0;
   memcpy(page->getData() + offset, &headPage, sizeof(Header));
-  cout<<7<<endl;
-  cout<<"offset"<<offset<<endl;
+  // cout<<7<<endl;
+  // cout<<"offset"<<offset<<endl;
   page->setIsDirty(true);
 
   //todo: verificar que mas se debe de ahcer con el buffer marcar com sucio y que mas procede ?
@@ -437,7 +437,7 @@ void Executor::executeSelectAllStrings(string nameTable) {
 
 
 void Executor::insertInto (string nameTable, vector<Col_Data> & rawData) {
-  cout<<"Insert Into iniciando ..."<<endl;
+  //cout<<"Insert Into iniciando ..."<<endl;
   unique_ptr<PgClassRow> table = refCatalog->getTable(nameTable);
   int numColumns = refCatalog->getNumColumns(table->oid);
   vector<unique_ptr<PgAttributeRow>> refColumns;
@@ -538,7 +538,7 @@ void Executor::insertInto (string nameTable, vector<Col_Data> & rawData) {
   // memcpy(page->getData(), &hp, sizeof(Header));
   PageManager::writeRegisterInBuffer(fields,numColumns, bitmap, page);
 
-  cout<<"Inset Into terminada ..."<<endl;
+  //cout<<"Inset Into terminada ..."<<endl;
 
 
 }
@@ -571,7 +571,7 @@ void Executor::selectAll(string nameTable) {
     memcpy(&l_ptr, page->getData() + i, sizeof(LinePointer));
     int tempOffset = l_ptr.offset;
     if (l_ptr.flags == LinePointerFlags::LP_DEAD) {
-      cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$4 el punetoa punta aun registro eliminado"<<endl;
+      //cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$4 el punetoa punta aun registro eliminado"<<endl;
       continue;
     }
 
@@ -606,7 +606,8 @@ void Executor::selectAll(string nameTable) {
     cout<<endl;
 
   }
-  cout<<"Terminamso de leer los datos"<<endl;
+  //cout<<"Terminamso de leer los datos"<<endl;
+  cout<<endl;
 
 }
 
@@ -714,12 +715,12 @@ void Executor::selectAllWhere(string nameTable, vector<Condition> & conditions) 
     bool match = false;
     for (Condition& con : conditions) {
       if (col.attname == con.column) {
-        cout<<"\t################## "<<con.operator_<<endl;
+        //cout<<"\t################## "<<con.operator_<<endl;
         Field_W_Condition temp;
         temp.refColumn = &col;
         temp.operator_ = con.operator_;
         temp.value = con.value;
-        cout<<"\t################## QQQ  "<<temp.operator_<<endl;
+        //cout<<"\t################## QQQ  "<<temp.operator_<<endl;
         fields.push_back(temp);
         match = true;
       }
@@ -807,10 +808,10 @@ void Executor::selectAllWhere(string nameTable, vector<Condition> & conditions) 
 
     for (Condition& con : conditions) {
       if (col.attname == con.column) {
-        cout<<"\t################## "<<con.operator_<<endl;
+        //cout<<"\t################## "<<con.operator_<<endl;
         temp.operator_ = con.operator_;
         temp.value = con.value;
-        cout<<"\t################## QQQ  "<<temp.operator_<<endl;
+        //cout<<"\t################## QQQ  "<<temp.operator_<<endl;
         break;
       }
     }
@@ -969,12 +970,12 @@ void Executor::updateRegister(string nameTable, vector<pair<string,string>> colu
   memcpy(&hp, page->getData() + offset, sizeof(Header));
   offset+= sizeof(Header);
 
-  cout<<"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qqupdate"<<endl;
+  //cout<<"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qqupdate"<<endl;
   for (int i = offset; i < hp.pd_lower; i+=sizeof(LinePointer)) {
-    cout<<i<<endl;
+    //cout<<i<<endl;
 
     memcpy(&l_ptr,page->getData() + i, sizeof(LinePointer));
-    cout<<"el primer offset del pointer es :"<<l_ptr.offset<<endl;
+    //cout<<"el primer offset del pointer es :"<<l_ptr.offset<<endl;
 
     //todo: aqui deberia mos de revisar si el linepointer es valido o no
     vector <Field> fieldsTemp;
@@ -985,31 +986,31 @@ void Executor::updateRegister(string nameTable, vector<pair<string,string>> colu
     memcpy(&th, page->getData() + tempOffset, sizeof(TupleHeader));
     tempOffset+=sizeof(TupleHeader);
     bool allConditionsSuccessfully = true;
-    cout<<"tamaño del vector original  :"<<fields.size()<<endl;
-    cout<<"tamaño del vector copia "<<fieldsTemp.size()<<endl;
+    //cout<<"tamaño del vector original  :"<<fields.size()<<endl;
+    //cout<<"tamaño del vector copia "<<fieldsTemp.size()<<endl;
 
     for (int j = 0; j < fieldsTemp.size(); j++) {
-      cout<<"\t verifiacr si esta columna tiene condicional  "<<fieldsConditions[j].operator_<<fieldsConditions[j].value<<endl;
+      //cout<<"\t verifiacr si esta columna tiene condicional  "<<fieldsConditions[j].operator_<<fieldsConditions[j].value<<endl;
       //*si se encuentra alamcenado en la tupla 
       if (!PageManager::isBitNull(th.t_bits,fieldsTemp[j].refColumn->attnum)) {
-        cout<<"El bit es correcto"<<endl;
+        //cout<<"El bit es correcto"<<endl;
         //*ahora revisamos el tipo de dato string o int
         if (fieldsTemp[j].refColumn->attlen < 0) {
-          cout<<"es un string"<<endl;
+          //cout<<"es un string"<<endl;
           int size = 0;
           string data;
           memcpy(&size, page->getData() + tempOffset, sizeof(int));
           data.resize(size);
-          cout<<"El tamaño del string a recuperar"<<size<<endl;
+          //cout<<"El tamaño del string a recuperar"<<size<<endl;
           tempOffset+= sizeof(int);
           memcpy(data.data(), page->getData() + tempOffset, size);
           tempOffset += size;
           if (!checkCondition_S(data,fieldsConditions[j].operator_,fieldsConditions[j].value)) {
-            cout<<"NO cumple la condicion del string"<<endl;
+            //cout<<"NO cumple la condicion del string"<<endl;
             allConditionsSuccessfully = false;
             break;
           }
-          cout<<"Data :"<<data<<"  "<<endl;
+          //cout<<"Data :"<<data<<"  "<<endl;
           if (fields[j].isNull) {
             fieldsTemp[j].data = data;
             fieldsTemp[j].isNull = false;
@@ -1017,7 +1018,7 @@ void Executor::updateRegister(string nameTable, vector<pair<string,string>> colu
           }
         }
         else if (fieldsTemp[j].refColumn->attlen == 4){
-          cout<<"Es un numero"<<endl;
+          //cout<<"Es un numero"<<endl;
           //*si la dimension es un numero entero
           int number;
           memcpy(&number, page->getData() + tempOffset, sizeof(int));
@@ -1032,13 +1033,13 @@ void Executor::updateRegister(string nameTable, vector<pair<string,string>> colu
             PageManager::changeBitMap(&tempBitmap,fieldsTemp[j].refColumn->attnum);
 
           }
-          cout<<"numero :"<<number<<"  "<<endl;
+          //cout<<"numero :"<<number<<"  "<<endl;
 
 
         }
       }
       else {
-        cout<<"El no es corecto"<<endl;
+        //cout<<"El no es corecto"<<endl;
         //*no se encuentra almacenado en la apgina la columna actual
       }
     }
@@ -1046,21 +1047,21 @@ void Executor::updateRegister(string nameTable, vector<pair<string,string>> colu
 
 
     for (Field & f : fieldsTemp) {
-      cout<<"contenido : "<<f.data<< "  estado : "<<f.isNull<<"  column : "<<f.refColumn->attname<<endl;
+      //cout<<"contenido : "<<f.data<< "  estado : "<<f.isNull<<"  column : "<<f.refColumn->attname<<endl;
     }
     if (allConditionsSuccessfully) {
       l_ptr.offset = PageManager::writeTuple(fieldsTemp, numColumns, tempBitmap, page);
-      cout<<"el nuevo offset del pointer es :"<<l_ptr.offset<<endl;
+      //cout<<"el nuevo offset del pointer es :"<<l_ptr.offset<<endl;
       memcpy(page->getData() + i, &l_ptr, sizeof(LinePointer));
       if (isUnique) {
-        cout<<"Es una actualizacion unica solo se hara 1 vez"<<endl;
+        //cout<<"Es una actualizacion unica solo se hara 1 vez"<<endl;
         break;
       }
 
     }
 
   }
-  cout<<"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qqupdate"<<endl;
+  //cout<<"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@qqupdate"<<endl;
 } 
 
 
@@ -1105,7 +1106,7 @@ void Executor::deleteRegister(string nameTable, vector<Condition> conditions, bo
   // offset += sizeof(Header);
   //*recuperamos el headerPage
   PageManager::copyFromBuffer(&hp,page->getData(),offset,sizeof(Header));
-  cout<<"????????????????????????????????empezo  el delete"<<endl;
+  //cout<<"????????????????????????????????empezo  el delete"<<endl;
 
 
   for (int i = offset; i < hp.pd_lower; i+= sizeof(LinePointer)) {
@@ -1130,22 +1131,22 @@ void Executor::deleteRegister(string nameTable, vector<Condition> conditions, bo
           data.resize(sizeString);
           PageManager::copyFromBuffer(data.data(),page->getData(),tempOffset,sizeString);
           if (!checkCondition_S(data,field.operator_,field.value)) {
-            cout<<"NO cumple con la condicion en string"<<endl;
+            //cout<<"NO cumple con la condicion en string"<<endl;
             allConditionsSuccessfully--;
             break;
           }
-          cout<<"DATA: "<<data<<"\t";
+          //cout<<"DATA: "<<data<<"\t";
         }
         else if (field.refColumn->attlen == 4) {
           int number = 0;
           PageManager::copyFromBuffer(&number, page->getData(), tempOffset, sizeof(int));
 
           if (!checkCondition_N(number, field.operator_, stoi(field.value))) {
-            cout<<"No cumple conla condicion de int"<<endl;
+            //cout<<"No cumple conla condicion de int"<<endl;
             allConditionsSuccessfully--;
             break;
           }
-          cout<<"Number"<<number<<"\t";
+          //cout<<"Number"<<number<<"\t";
         }
       }
     }
@@ -1157,13 +1158,13 @@ void Executor::deleteRegister(string nameTable, vector<Condition> conditions, bo
       tempOffset = l_ptr.offset;
       PageManager::copyToBuffer(page->getData(), &th, tempOffset, sizeof(TupleHeader));
       if (isUnique) {
-        cout<<"LA condicion es unica en su fila"<<endl;
+        //cout<<"LA condicion es unica en su fila"<<endl;
         break;
       }
     }
 
   }
-  cout<<"????????????????????????????????Termino el delete"<<endl;
+  //cout<<"????????????????????????????????Termino el delete"<<endl;
 
 
 

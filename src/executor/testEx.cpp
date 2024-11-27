@@ -176,7 +176,8 @@ int main () {
 
 
 
-
+  //*INSERT
+  cout<<"INSERT"<<endl;
   exe.insertInto(nameTable, data);
   exe.insertInto(nameTable, data1);
   exe.insertInto(nameTable, data2);
@@ -185,8 +186,15 @@ int main () {
   vector<string> columns;
   columns.push_back("nombre");
   columns.push_back("apellido");
+  //*select all
+  cout<<"SELECT ALL"<<endl;
+  exe.selectAll(nameTable);
 
-  //exe.selectCustom(nameTable, columns);
+  //*SELECT CUSTOM
+  cout<<"SELECT CUSTOM"<<endl;
+  exe.selectCustom(nameTable, columns);
+
+
   vector<Condition> conds;
   Condition cond1;
   cond1.column = "apellido";
@@ -226,13 +234,19 @@ int main () {
   cond23.value = "45";
   conds3.push_back(cond23);
 
-
+  //* update a
+  cout<<"update tabla set (nombre,apellido,edad) where  apellido=hualpa "<<endl;
 
   exe.updateRegister(nameTable, columnAndValue, conds,true);
+  cout<<"SELECT ALL"<<endl;
   exe.selectAll(nameTable);
+  cout<<"UPDATE tabla edad=45 where  edad > 2"<<endl;
   exe.updateRegister(nameTable, columnAndValue2, conds2,false);
+  cout<<"SELECT ALL"<<endl;
   exe.selectAll(nameTable);
+  cout<<"DELETE from tabla where edad = 45"<<endl;
   exe.deleteRegister(nameTable, conds3, false);
+  cout<<"SELECT ALL"<<endl;
   exe.selectAll(nameTable);
 
 
