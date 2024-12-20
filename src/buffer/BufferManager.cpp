@@ -4,9 +4,12 @@
 #include "../storage/Page.h"
 using namespace std;
 
-BufferManager::BufferManager(){
+BufferManager::BufferManager(DisckManager * diskmg){
   r_and_w = make_unique<fstream>();
+  this->diskmg = diskmg;
 }
+
+BufferManager::~BufferManager() {}
 
 bool BufferManager::isPageInBuffer(pair<int,int> key) {
   if (bufferPool.find(key) != bufferPool.end()) return true;
@@ -14,29 +17,6 @@ bool BufferManager::isPageInBuffer(pair<int,int> key) {
 }
 
 Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
-  // pair<int,int> key = make_pair(fileNodeOID,pageNum);
-  // if (isPageInBuffer(key)) return bufferPool[key].get();
-
-  // string dirName ="";
-  // this->r_and_w->open(dirName,ios::binary | ios::out | ios::in);
-
-  // if (! r_and_w->is_open()) {
-  //   cout<<"NO se pudo abrir"<<endl;
-  //   return nullptr;
-  // }
-
-  // unique_ptr<Buffer> temp = make_unique<Buffer>(fileNodeOID,pageNum);
-  // int offset = PAGE_SIZE * pageNum;
-  // r_and_w->seekg(offset,ios::beg);
-
-  // if(!r_and_w->read(temp->getData(),PAGE_SIZE)) {
-  //   throw runtime_error("No se pudo leer la pagina");
-  // }
-  // r_and_w->close();
-
-  // bufferPool[key] = move(temp);
-  // cout<<"Operacion completada con exito"<<endl;
-  // return bufferPool[key].get();
   pair<int,int> key = make_pair(fileNodeOID,pageNum);
   if (isPageInBuffer(key)) { //todo: quitar el cout y dejarlo en 1 sola linea
     cout<<"La pagina esta en el buffer"<<endl;
@@ -44,6 +24,7 @@ Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
   }
   cout<<"Se buscara en el archivo la pagina"<<endl;
 
+/*
   string slash = "/";
   string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
   r_and_w->open(dirName, ios::binary | ios::in);
@@ -63,6 +44,32 @@ Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
 
   this->bufferPool[key] = move(tempBuffer);
   cout<<"Se encontro la pagina correctamente"<<endl;
+  */
+
+  string fileName = to_string(fileNodeOID);
+  if (pageNum > 0) {
+    fileName+=("_"+to_string(pageNum));
+  }
+
+  pair<int, int> fileFound = diskmg->findFile(fileName);
+
+  //* si encuentra el archivo en disco lo recupera
+  if (fileFound.first > 0) {
+    cout<<"La pagina esta en alamacenada en el disco"<<endl;
+    unique_ptr<char []> data = diskmg->getBlockByNumber(fileFound.first, fileFound.second);
+
+    unique_ptr<Buffer> tempBuffer = make_unique<Buffer>(fileNodeOID,pageNum);
+    tempBuffer->setData(move(data));
+
+    this->bufferPool[key] = move(tempBuffer);
+
+  }
+  //* si no lo encunetra retorna un nullptr
+  else {
+    cout<<"La pagina NO esta en el disco"<<endl;
+    return nullptr;
+  }
+
   return bufferPool[key].get();
 
 }
@@ -95,7 +102,7 @@ Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
 //   return nullptr;
 // }
 
-Buffer * BufferManager::newPage(int fileNodeOID) {
+Buffer * BufferManager::newPage(int fileNodeOID, int pageNum) {
   // string dirname = "testBufferM.bin";
   // char page[PAGE_SIZE];
   // memset(page,0,sizeof(page));
@@ -109,18 +116,28 @@ Buffer * BufferManager::newPage(int fileNodeOID) {
   // r_and_w->write(page,PAGE_SIZE);
   // r_and_w->close();
   // return true;
-  string slash = "/";
-  string dirName = "."+slash+host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
+
+
+
+
+  // string slash = "/";
+  // string dirName = "."+slash+host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
   
-  r_and_w->open(dirName,ios::binary | ios::in | ios::out | ios::app);
-  if (!r_and_w->is_open()) {
-    cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
-    return nullptr;
+  // r_and_w->open(dirName,ios::binary | ios::in | ios::out | ios::app);
+  // if (!r_and_w->is_open()) {
+  //   cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
+  //   return nullptr;
+  // }
+  // r_and_w->seekg(0,ios::end);
+  // cout<<"tamaño del archivo"<<r_and_w->tellg()<<endl;//!debug eliminar
+  // int pageNum = r_and_w->tellg() / PAGE_SIZE;
+  // cout<<"El num de pagina a insertar es:"<<pageNum<<endl;//!debug eliminar
+
+  string fileName = to_string(fileNodeOID);
+  if (pageNum > 0) {
+    fileName+=("_"+to_string(pageNum));
   }
-  r_and_w->seekg(0,ios::end);
-  cout<<"tamaño del archivo"<<r_and_w->tellg()<<endl;//!debug eliminar
-  int pageNum = r_and_w->tellg() / PAGE_SIZE;
-  cout<<"El num de pagina a insertar es:"<<pageNum<<endl;//!debug eliminar
+
 
 
   //inicializacion de la pageHeader
@@ -134,8 +151,9 @@ Buffer * BufferManager::newPage(int fileNodeOID) {
   memcpy(newPageTemp->getData(),&newHeaderPage,sizeof(Header));
 
   //escribimos este buffer a disco para tenerlo sincronizado
-  r_and_w->write(newPageTemp->getData(),PAGE_SIZE);
-  r_and_w->close();
+  diskmg->saveFile(fileName, newPageTemp->getData(), PAGE_SIZE);
+  // r_and_w->write(newPageTemp->getData(),PAGE_SIZE);
+  // r_and_w->close();
 
   //agregamos el buffer el bufferPool
   pair<int,int> key = make_pair(fileNodeOID, pageNum);
@@ -144,6 +162,11 @@ Buffer * BufferManager::newPage(int fileNodeOID) {
   //retorname el un puntero al buffer previamente creado y guardado
   return bufferPool[key].get();
 }
+
+
+
+
+
 
 void BufferManager::setDbName(string name) {
   this->nameDB = name;
@@ -157,16 +180,34 @@ void BufferManager::printStatus(){
   cout<<"paginas en el buffer:"<<bufferPool.size()<<endl;
 }
 
+
+
+
 void BufferManager::flushPage(int fileNodeOID, int pageNum) {
-  pair<int,int> key = make_pair(fileNodeOID,pageNum);
-  string slash = "/";
-  string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
-  r_and_w->open(dirName, ios::binary | ios::in | ios::out);
-  if (!r_and_w->is_open()) {
-    cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
-    return;
+  string fileName = to_string(fileNodeOID);
+  if (pageNum > 0) {
+    fileName+=("_"+to_string(pageNum));
   }
-  r_and_w->seekp(pageNum * PAGE_SIZE);
-  r_and_w->write(bufferPool[key].get()->getData(),PAGE_SIZE);
-  r_and_w->close();
+  pair<int, int> fileFound = diskmg->findFile(fileName);
+
+  pair<int,int> key = make_pair(fileNodeOID,pageNum);
+
+  if (isPageInBuffer(key)) { //todo: quitar el cout y dejarlo en 1 sola linea
+    cout<<"La pagina esta en el buffer"<<endl;
+  }
+  else {
+    cout<<"la pagina no esta en el buffer por ende no se puede guardar"<<endl;
+  }
+  // string slash = "/";
+  // string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
+  // r_and_w->open(dirName, ios::binary | ios::in | ios::out);
+  // if (!r_and_w->is_open()) {
+  //   cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
+  //   return;
+  // }
+  // r_and_w->seekp(pageNum * PAGE_SIZE);
+  // r_and_w->write(bufferPool[key].get()->getData(),PAGE_SIZE);
+  // r_and_w->close();
+
+  diskmg->updateFile(fileFound.first, bufferPool[key].get()->getData(), PAGE_SIZE);
 }

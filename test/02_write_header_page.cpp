@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <cstring>
+//#include <cstring>
 #include "Strucs.h"
 using namespace std; 
 

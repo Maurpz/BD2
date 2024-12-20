@@ -65,7 +65,7 @@ class PageManager {
     static void copyToBuffer(void * destination, void * origin, int & offset, int sizeOf);
 
     //static void 
-    static void writeRegisterInBuffer(vector<Field> & fields, int & numColumns, int & bitmap, Buffer * page);
+    static pair<int, int> writeRegisterInBuffer(vector<Field> & fields, int & numColumns, int & bitmap, Buffer * page);
     static uint16_t writeTuple(vector<Field> & fields, int & numColumns, int & bitmap, Buffer * page);
 
     

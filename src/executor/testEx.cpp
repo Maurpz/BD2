@@ -109,15 +109,15 @@ int main () {
 
   string nameTable = "users";
 
-  // c1.createTable(nameTable);
-  // unique_ptr<PgClassRow> res = c1.getTable(nameTable);
+  c1.createTable(nameTable);
+  unique_ptr<PgClassRow> res = c1.getTable(nameTable);
 
-  // c1.createColumn(res->oid, "id", "INT", 1, false);
-  // c1.createColumn(res->oid, "nombre", "VARCHAR", 2, false);
-  // c1.createColumn(res->oid, "apellido", "VARCHAR", 3, false);
-  // c1.createColumn(res->oid, "edad", "INT", 4, false);
+  c1.createColumn(res->oid, "id", "INT", 1, false);
+  c1.createColumn(res->oid, "nombre", "VARCHAR", 2, false);
+  c1.createColumn(res->oid, "apellido", "VARCHAR", 3, false);
+  c1.createColumn(res->oid, "edad", "INT", 4, false);
 
-  // b1.newPage(res->relfilenode);
+  b1.newPage(res->relfilenode);
 
   vector<Col_Data> data;
   Col_Data d1, d2, d3, d4;

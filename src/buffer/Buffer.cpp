@@ -2,8 +2,10 @@
 #include <cstring>
 
 Buffer::Buffer(int fileNodeOID, int pageNum) {
-  this->data = new char[PAGE_SIZE];
-  memset(data,0,PAGE_SIZE);
+  this->data = make_unique<char []>(PAGE_SIZE);
+  // this->data = new char[PAGE_SIZE];
+  // memset(data,0,PAGE_SIZE);
+  memset(data.get(),0,PAGE_SIZE);
   this->dirty = false;
   this->pinCount = 0;
   this->fileNodeOID = fileNodeOID;
@@ -11,7 +13,7 @@ Buffer::Buffer(int fileNodeOID, int pageNum) {
 }
 
 Buffer::~Buffer(){
-  delete [] data;
+  //delete [] data;
 }
 
 /*posible mejora propuesta
@@ -25,7 +27,7 @@ Buffer::~Buffer() {
 */
 
 char * Buffer::getData() {
-  return data;
+  return data.get();
 }
 
 int Buffer::getFileNodeOID() {
@@ -40,6 +42,7 @@ void Buffer::setIsDirty(bool changeDirty) {
   this->dirty = changeDirty;
 }
 
-void Buffer::setData(char data[]) {
+void Buffer::setData(unique_ptr<char []> data) {
+  this->data = move(data);
 
 }

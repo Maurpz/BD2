@@ -2,10 +2,18 @@
 #define BUFFER_H
 
 
-const int PAGE_SIZE = 4096;
+//const int PAGE_SIZE = 4096;
+//const int PAGE_SIZE = 4096;
+//const int PAGE_SIZE = 512;
+//const int PAGE_SIZE = 206;
+const int PAGE_SIZE = 50;
+
+
+
 class Buffer {
   private:
-    char * data;
+    //char * data;
+    unique_ptr<char []> data;
     int fileNodeOID;
     int pageNum;
     bool dirty;
@@ -18,6 +26,6 @@ class Buffer {
     int getFileNodeOID();
     void setIsDirty(bool);
     bool isDirty();
-    void setData(char[]);//!posiblemente eliminar
+    void setData(unique_ptr<char []> data);//!posiblemente eliminar
 };
 #endif

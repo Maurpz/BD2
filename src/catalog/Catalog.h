@@ -11,7 +11,13 @@ const int MAX_SIZE_CHAR = 21;
 #include <iostream>
 #include <cstring>
 #include <fstream>
+#include "../disck/DisckManager.hpp"
 
+struct Pg_Header {
+  uint32_t offset;
+  uint32_t elements;
+  uint32_t size;
+};
 
 
 //la descripcion de una tabla
@@ -47,6 +53,12 @@ struct PgType {
       strncpy(typname, name, MAX_SIZE_CHAR - 1);
         typname[MAX_SIZE_CHAR - 1] = '\0';{}
     }
+};
+
+
+struct PgIndex {
+  int oid;
+  int columnIndex;
 };
 
 //?Estructuras tenporales
@@ -98,13 +110,17 @@ struct Field_W_Condition {
   string value;
 };
 
+
+
 class Catalog {
   private:
     string nameBD;
     map<string,unique_ptr<PgType>> types;
     unique_ptr<fstream> r_and_w;
+    DisckManager * disckMg;
+    
   public:
-    Catalog();
+    Catalog(DisckManager * refDisckManager);
 
     int findTable(string tableName);
 
@@ -114,6 +130,7 @@ class Catalog {
     //int tableOID, string nameColumn, string typeName,int index,bool permitNull
     void createColumn(int,string,string,int,bool);
     void createType();
+    void createIndex(string nameTable,string columna);
 
     bool tableExists(string tableName);//
     bool columnExists(string columnName);
@@ -121,9 +138,14 @@ class Catalog {
 
     unique_ptr<PgClassRow> getTable(string tableName);
     unique_ptr<PgAttributeRow> getColumn(int tableOID, string columnName);
+    unique_ptr<PgIndex> getIndex(int indexOID);
     vector<PgAttributeRow> getAllColumns(int tableOID);
     int getNumColumns(int tableOID);
     PgType * getType(string typeName);
+
+    void increaseNumPage(string tableName);
+
+
 
     //TODO: metodos para crear indices
 };

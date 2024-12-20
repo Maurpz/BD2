@@ -4,6 +4,7 @@ using namespace std;
 #ifndef BUFFERMANAGER_H
 #define BUFFERMANAGER_H
 #include "Buffer.h"
+#include "../disck/DisckManager.hpp"
 #include <map>
 #include <fstream>
 #include <memory>
@@ -17,20 +18,23 @@ struct PageTest {
 class BufferManager {
   private:
     map<pair<int,int>,unique_ptr<Buffer>> bufferPool;
+    DisckManager * diskmg;
     unique_ptr <fstream> r_and_w;
     int maxSize;
     string nameDB;
     string host;
     
   public:
-    BufferManager();
+    BufferManager(DisckManager * diskmg);
+    ~BufferManager();
+
     Buffer * loadPage(uint32_t fileNodeOID, int pageNum);
 
     //sincroniza la pagina del buffer con el archivo en disco
     void flushPage(int fileNodeOID, int pageNum);
 
     //crear nueva pagina
-    Buffer * newPage(int fileNodeOID);
+    Buffer * newPage(int fileNodeOID, int pageNum);
     
     //marca para que la pagina no sea expulsada 
     //inmediatamente usa las politicas de remplazo
@@ -55,9 +59,9 @@ class BufferManager {
 
 
     //funciones de complemento
-    void setDbName(string nameDB);
-    void setHostName(string host);
-    void printStatus();
+    void setDbName(string nameDB);//*no se usara
+    void setHostName(string host);//*no se usara
+    void printStatus();//*no se usara
 
 };
 #endif

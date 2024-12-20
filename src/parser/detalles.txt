@@ -1,0 +1,2 @@
+create tabla  : nombre de la tabla
+columna : 
