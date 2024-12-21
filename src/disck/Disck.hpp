@@ -1,5 +1,5 @@
-#ifndef DISCK_H
-#define DISCK_H
+#ifndef DISCK_HPP
+#define DISCK_HPP
 
 #include <filesystem>
 #include <cstring>

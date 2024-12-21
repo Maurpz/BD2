@@ -1,7 +1,10 @@
 #include "Catalog.cpp"
-#include "../executor/Executor.cpp"
+// #include "../executor/Executor.cpp"
+
 #include "../buffer/BufferManager.cpp"
 //#include "../disck/DisckManager.cpp"
+
+#include "../executor/executor2.cpp"
 
 int main() {
   DisckManager dm(2,4,4,4,512,2);
@@ -27,13 +30,13 @@ int main() {
   vector<Col_Data> dataToInsert;
   Col_Data d1;
   d1.columnName = "id";
-  d1.data = "11";
+  d1.data = "14";
 
   dataToInsert.push_back(d1);
 
   Col_Data d2;
   d2.columnName = "nombre";
-  d2.data = "sd";
+  d2.data = "sdfff";
 
   dataToInsert.push_back(d2);
 

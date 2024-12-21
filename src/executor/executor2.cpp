@@ -1,3 +1,4 @@
+#pragma once
 #include "Executor.h"
 #include "../storage/Page.cpp"
 #include <algorithm>
@@ -17,6 +18,8 @@ void Executor::setReferenceToCatalog(Catalog * referenceCat) {
 //! INSERT INTO
 
 void Executor::insertInto (string nameTable, vector<Col_Data> & rawData) {
+
+  cout<<"******************************************************"<<endl;
   //cout<<"Insert Into iniciando ..."<<endl;
   unique_ptr<PgClassRow> table = refCatalog->getTable(nameTable);
   cout<<"NUmero de paginas de la tabla : "<<table->relpages<<endl;
@@ -75,11 +78,37 @@ void Executor::insertInto (string nameTable, vector<Col_Data> & rawData) {
     refCatalog->increaseNumPage(nameTable);
     status = PageManager::writeRegisterInBuffer(fields,numColumns, bitmap, page);
   }
+
+  cout<<"Entrara a la coprovacion"<<endl;
   if (status.first == 200) { 
+    cout<<"L escritura de la tupla fue un exito"<<endl;
     table = refCatalog->getTable(nameTable);
     refBufferManager->flushPage(table->oid, table->relpages-1);
+
     if (table->relam != 1111){
+      cout<<"Tiene un indice asique hay que indexzacrlo"<<endl;
       unique_ptr<PgIndex> index = refCatalog->getIndex(table->relam);
+      if (index != nullptr) {
+        cout<<"Existe el indice"<<endl;
+      }
+      else {
+        cout<<"NO exists"<<endl;
+      }
+
+      
+      BPlusTree * tempTree = refBufferManager->getBTree(index->oid);
+
+      CTID tempItem;
+      tempItem.numBlock = table->relpages-1;
+      tempItem.offsetTuple = status.second;
+
+      for (auto & column : fields) {
+        if (column.refColumn->attnum == index->columnIndex) {
+          tempTree->set(stoi(column.data), tempItem);
+          cout<<"Se inserto correctamente el item en el arbol "<<endl;
+          break;
+        }
+      }
     }
 
     cout<<"Se escribio corectamente en el disco la pagina : "<<table->relpages-1<<endl;
@@ -255,6 +284,7 @@ void Executor::selectCustom(string nametable, vector<string> & fields) {
 //todo--------------------------------Select All Where-----------------------------
 
 void Executor::selectAllWhere(string nameTable, vector<Condition> & conditions) {
+  cout<<"=============================================="<<endl;
   unique_ptr<PgClassRow> table = refCatalog->getTable(nameTable);
   vector<PgAttributeRow> columns = refCatalog->getAllColumns(table->oid);
 
@@ -285,6 +315,69 @@ void Executor::selectAllWhere(string nameTable, vector<Condition> & conditions) 
   }
 
   Buffer * page = refBufferManager->loadPage(table->oid,0);
+
+  // //* definimos nuestros datos  usar
+  // Header hp;
+  // LinePointer l_ptr;
+  // TupleHeader th;
+  // int offset = 0;
+
+  // memcpy(&hp, page->getData() +offset, sizeof(Header));
+  // offset += sizeof(Header);
+
+
+  //* verificamos si la condicion por la que se busca esta indexada
+  unique_ptr<PgIndex> indexBT = refCatalog->getIndex(table->relam);
+  if (indexBT != nullptr) {
+    for (auto & column : fields) {
+      if (column.refColumn->attnum == indexBT->columnIndex) {
+        cout<<"&&&&&&&&&&&&&&&&&&&LLega por index scan"<<endl;
+
+        BPlusTree * tree = refBufferManager->getBTree(indexBT->oid);
+        CTID metaDataTuple =  tree->get(stoi(column.value));
+
+        page = refBufferManager->loadPage(table->oid, metaDataTuple.numBlock); 
+        int tempOffset = metaDataTuple.offsetTuple;
+        TupleHeader th;
+
+
+        memcpy(&th, page->getData() + tempOffset, sizeof(TupleHeader));
+        tempOffset += sizeof(TupleHeader);
+
+
+        for (PgAttributeRow & c : columns) {
+          if (!PageManager::isBitNull(th.t_bits,c.attnum)) {
+            if (c.attlen < 0) {
+              int size;
+              string data;
+              memcpy(&size, page->getData() + tempOffset, sizeof(int));
+              tempOffset+= sizeof(int);
+
+              data.resize(size);
+              memcpy(data.data(), page->getData() + tempOffset, size);
+              tempOffset += size;
+
+              cout<<data<<"\t";
+            }
+            else {
+              int data;
+              memcpy(&data, page->getData() + tempOffset, c.attlen);
+              tempOffset+=c.attlen;
+              cout<<data<<"\t";
+            }
+          }
+          else {
+            cout<<"null\t";
+          }
+        }
+        return;
+      }
+    }
+  }
+
+  cout<<"&&&&&&&&&&&&&&&&&&&LLega por secuecnial scan"<<endl;
+
+  page = refBufferManager->loadPage(table->oid,0);
 
   //* definimos nuestros datos  usar
   Header hp;
@@ -341,6 +434,18 @@ void Executor::selectAllWhere(string nameTable, vector<Condition> & conditions) 
     cout<<endl;
   } 
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //todo  select with where  v2 

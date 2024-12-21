@@ -1,8 +1,8 @@
 #include "./Disck.hpp"
 #include <memory>
 
-#ifndef DISCK_MANAGER_H
-#define DISCK_MANAGER_H
+#ifndef DISCK_MANAGER_HPP
+#define DISCK_MANAGER_HPP
 struct HeaderInfoFile {
   int offset;
   int numFiles;

@@ -470,9 +470,37 @@ void Catalog::createIndex(string nameTable, string columnName){
   cout<<"Terminamos de guardar el dato en el disco index"<<endl;
 
   }
+
+  //!actualizamos el indice relacionado con la pagina
+
+  nameFile = "pg_class";
+  pair<int, int> fileFound2 = disckMg->findFile(nameFile);
+  unique_ptr<char []> pg_class = disckMg->getBlockByNumber(fileFound2.first, fileFound2.second);
+
+  Pg_Header pg_h;
+  PgClassRow pg_clsrow;
+
+  memcpy(&pg_h, pg_class.get(), sizeof(Pg_Header));
+
+  for (int i = sizeof(Pg_Header); i < pg_h.offset; i += sizeof(PgClassRow)) {
+    memcpy(&pg_clsrow, pg_class.get() + i, sizeof(PgClassRow));
+    if (pg_clsrow.relname == nameTable) {
+      pg_clsrow.relam = oid;
+
+      memcpy(pg_class.get() + i, &pg_clsrow, sizeof(PgClassRow));
+      disckMg->updateFile(fileFound2.first, pg_class.get(), fileFound2.second);
+      cout<<"La actualizacion del numero de paginas por tabla fue correcta"<<endl;
+      return;
+    }
+  }
+  cout<<"No se encontro la tabla para actualizar o no se pudo actualizar el nuemro de paginas por tabla"<<endl;
+
   cout<<"Terminao la funcion create file index"<<endl;
 
 }
+
+
+
 
 unique_ptr<PgIndex> Catalog::getIndex(int indexOID) {
   string fileName = "pg_index";

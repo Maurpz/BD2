@@ -4,8 +4,8 @@
 #include "../storage/Page.h"
 using namespace std;
 
-BufferManager::BufferManager(DisckManager * diskmg){
-  r_and_w = make_unique<fstream>();
+BufferManager::BufferManager(DisckManager * diskmg, int maxSize_){
+  this->maxSize = maxSize_;
   this->diskmg = diskmg;
 }
 
@@ -16,6 +16,12 @@ bool BufferManager::isPageInBuffer(pair<int,int> key) {
   return false;
 }
 
+
+
+
+
+/*
+
 Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
   pair<int,int> key = make_pair(fileNodeOID,pageNum);
   if (isPageInBuffer(key)) { //todo: quitar el cout y dejarlo en 1 sola linea
@@ -23,28 +29,6 @@ Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
     return bufferPool[key].get();
   }
   cout<<"Se buscara en el archivo la pagina"<<endl;
-
-/*
-  string slash = "/";
-  string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
-  r_and_w->open(dirName, ios::binary | ios::in);
-  if (!r_and_w->is_open()) {
-    cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
-    return nullptr;
-  }
-  int offset = pageNum * PAGE_SIZE;
-  r_and_w->seekg(offset,ios::beg);
-
-  unique_ptr<Buffer> tempBuffer = make_unique<Buffer>(fileNodeOID,pageNum);
-
-  r_and_w->read(tempBuffer->getData(),PAGE_SIZE);
-  if (!r_and_w->good()) return nullptr;
-
-  r_and_w->close();
-
-  this->bufferPool[key] = move(tempBuffer);
-  cout<<"Se encontro la pagina correctamente"<<endl;
-  */
 
   string fileName = to_string(fileNodeOID);
   if (pageNum > 0) {
@@ -73,6 +57,79 @@ Buffer * BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
   return bufferPool[key].get();
 
 }
+
+
+*/
+
+
+
+
+
+
+
+
+
+Buffer* BufferManager::loadPage(uint32_t fileNodeOID, int pageNum) {
+  pair<int, int> key = make_pair(fileNodeOID, pageNum);
+
+  // Si la página ya está en el buffer
+  if (isPageInBuffer(key)) {
+    cout << "La página está en el buffer" << endl;
+
+        // Actualizar LRU: mover al frente de la lista
+    lruList.erase(lruMap[key]);
+    lruList.push_front(key);
+    lruMap[key] = lruList.begin();
+
+    return bufferPool[key].get();
+  }
+
+  cout << "Se buscará en el archivo la página" << endl;
+
+    // Buscar la página en el disco
+  string fileName = to_string(fileNodeOID);
+  if (pageNum > 0) {
+    fileName += ("_" + to_string(pageNum));
+  }
+
+  pair<int, int> fileFound = diskmg->findFile(fileName);
+
+  if (fileFound.first > 0) { // Si la página está en el disco
+    cout << "La página está almacenada en el disco" << endl;
+    unique_ptr<char[]> data = diskmg->getBlockByNumber(fileFound.first, fileFound.second);
+
+    // Verificar si el buffer está lleno
+    if (bufferPool.size() >= maxSize) {
+      evictPage(); // Expulsar la página menos recientemente usada
+    }
+
+    // Cargar la página en el buffer
+    unique_ptr<Buffer> tempBuffer = make_unique<Buffer>(fileNodeOID, pageNum);
+    tempBuffer->setData(move(data));
+    bufferPool[key] = move(tempBuffer);
+
+    // Actualizar LRU
+    lruList.push_front(key);
+    lruMap[key] = lruList.begin();
+  } else {
+    cout << "La página NO está en el disco" << endl;
+    return nullptr;
+  }
+
+  return bufferPool[key].get();
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -157,28 +214,34 @@ Buffer * BufferManager::newPage(int fileNodeOID, int pageNum) {
 
   //agregamos el buffer el bufferPool
   pair<int,int> key = make_pair(fileNodeOID, pageNum);
-  this->bufferPool[key] = move(newPageTemp);
+  bufferPool[key] = move(newPageTemp);
 
   //retorname el un puntero al buffer previamente creado y guardado
   return bufferPool[key].get();
 }
 
 
+//     // Verifica si una página está en el buffer
+// bool BufferManager::isPageInBuffer(pair<int, int> key) {
+//   return bufferPool.find(key) != bufferPool.end();
+// }
 
 
 
 
-void BufferManager::setDbName(string name) {
-  this->nameDB = name;
-}
 
-void BufferManager::setHostName(string host) {
-  this->host = host;
-}
 
-void BufferManager::printStatus(){
-  cout<<"paginas en el buffer:"<<bufferPool.size()<<endl;
-}
+// void BufferManager::setDbName(string name) {
+//   this->nameDB = name;
+// }
+
+// void BufferManager::setHostName(string host) {
+//   this->host = host;
+// }
+
+// void BufferManager::printStatus(){
+//   cout<<"paginas en el buffer:"<<bufferPool.size()<<endl;
+// }
 
 
 
@@ -198,16 +261,58 @@ void BufferManager::flushPage(int fileNodeOID, int pageNum) {
   else {
     cout<<"la pagina no esta en el buffer por ende no se puede guardar"<<endl;
   }
-  // string slash = "/";
-  // string dirName = host+slash+"data"+slash+nameDB+slash+to_string(fileNodeOID)+".bin";
-  // r_and_w->open(dirName, ios::binary | ios::in | ios::out);
-  // if (!r_and_w->is_open()) {
-  //   cerr << "Error: No se pudo abrir el archivo " << dirName << endl;
-  //   return;
-  // }
-  // r_and_w->seekp(pageNum * PAGE_SIZE);
-  // r_and_w->write(bufferPool[key].get()->getData(),PAGE_SIZE);
-  // r_and_w->close();
 
   diskmg->updateFile(fileFound.first, bufferPool[key].get()->getData(), PAGE_SIZE);
+}
+
+
+void BufferManager::addBTree(int indexOID) {
+  trees.emplace_back(make_pair(indexOID,make_unique<BPlusTree>()));
+}
+
+
+
+
+BPlusTree * BufferManager::getBTree(int indexOID) {
+  for(auto & tree : trees) {
+    if (tree.first == indexOID) {
+      return tree.second.get();
+    }
+  }
+
+  addBTree(indexOID);
+
+  for(auto & tree : trees) {
+    if (tree.first == indexOID) {
+      return tree.second.get();
+    }
+  }
+
+  return nullptr;
+  
+};
+
+
+
+void BufferManager::evictPage() {
+  if (lruList.empty()) {
+    cout << "No hay páginas en el buffer para expulsar" << endl;
+    return;
+  }
+
+  // Obtener la página menos recientemente usada (final de la lista LRU)
+  pair<int, int> lruPage = lruList.back();
+  lruList.pop_back(); // Eliminar de la lista LRU
+  lruMap.erase(lruPage); // Eliminar del mapa LRU
+
+  // Si la página está sucia, escribirla al disco
+  if (bufferPool[lruPage]->isDirty()) {
+    cout << "Escribiendo página sucia al disco antes de expulsarla" << endl;
+    flushPage(lruPage.first, lruPage.second);
+  }
+
+  // Eliminar la página del buffer
+  bufferPool.erase(lruPage);
+
+  cout << "Página expulsada del buffer: (" << lruPage.first << ", " << lruPage.second << ")" << endl;
 }
